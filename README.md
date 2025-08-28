@@ -10,5 +10,5 @@ Business Use Cases:
 
 # How to build and execute
 
-First of all, you need to build [pjsua2](https://docs.pjsip.org/en/latest/pjsua2/intro.html). This module provides a ready-to-use implementation of SIP in order to simplify and develop the VoIP component of this project.
+First of all, you need to build [pjsua2](https://docs.pjsip.org/en/latest/pjsua2/intro.html). This module provides a ready-to-use implementation of SIP in order to simplify and develop the VoIP component of this project. See the [build](https://docs.pjsip.org/en/latest/pjsua2/building.html) page to install this dependency in your system. 
 
