@@ -15,8 +15,12 @@ Current Business Use Cases:
 
 First of all, you need to build [pjsua2](https://docs.pjsip.org/en/latest/pjsua2/intro.html). This module provides a ready-to-use implementation of SIP in order to simplify and develop the VoIP component of this project. See the [build](https://docs.pjsip.org/en/latest/pjsua2/building.html) page to install this dependency in your system. 
 
+Additionally, use a virtual environment to load the dependencies from the requirements.txt file.
+
+Finally, inside this project you have a .env.example file with the list of envvars that you need to provide to execute this project.
 
 ## SIP Integration
+
 SIP protocol in general, and PJSUA2 module in particular, both include a vast number of options and variables to setup the account and the call for audio playback and capturing. The specific implementation in this project is based on the analysis, experimentation and testing performed until the system has been able to be executed automatically and without human supervision in my environment and context.
 For analysis and troubleshooting purposes, apart from [PJSUA2 basecode](https://github.com/pjsip/pjproject) analysis and review, these three tools has been used: [MicroSIP](https://www.microsip.org/), [Wireshark](https://www.wireshark.org/) and Linux TCPDump.
 
