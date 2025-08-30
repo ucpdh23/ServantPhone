@@ -17,3 +17,8 @@ First of all, you need to build [pjsua2](https://docs.pjsip.org/en/latest/pjsua2
 This module initiates the phone call to the requested phone number (SIP-VoIP). Then, every 0.5 seconds a new audio segment is generated. This segment is analyzed in order to identify a speech from the user to determine how to process it.
 With the speech from the user, a GenIA Module is called to extract the text (STT), process it with an LLM Agent, and finally transcript the output into an audio.
 In audio is queued into the playback queue. This queue is processed and played to the user using the SIP-VoIP channel. 
+
+# GenAI Agent details
+
+Using Langchain ReAct Agent with the Servant MCP Toolkit to interact with Servant. The MCP toolkit allows using some features from Servant to update and read the shopping list, read the calendar, build a message to be shared through Telegram, and others. Please see [Servant](https://github.com/ucpdh23/Servant) documentation for further details about other capabilities.
+
