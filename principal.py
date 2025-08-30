@@ -126,18 +126,22 @@ class MyCall(pj.Call):
         level = self.aud_med.getRxLevel()
         #print(f"Audio level: {level}")
 
-        if level > self.silence_threshold:
+        if level > self.silence_threshold: # level is returning 0
             self.last_voice_time = time.time()
         else:
-            if True:
-                print("before start_new_segment...", self.segment_index)
-                self.start_new_segment()
-                print("after start_new_segment...", self.segment_index)
+            # Generates a new audio segment
+            self.start_new_segment()
 
-                await self.check_incomming_audio(self.segment_index - 2)
+            # check the last (and previous) audio files
+            await self.check_incomming_audio(self.segment_index - 2)
                 
 
     async def check_incomming_audio(self, current_segment_index):
+        """
+        Check the incoming audio for silence detection.
+        If silence is detected and the previous segment was speech,
+        process the audio segment and generate a response.
+        """
         print("check_incoming_message...")
         silence_detected = self.evaluate_energy(current_segment_index)
         print("silence detected", silence_detected)
@@ -161,7 +165,7 @@ class MyCall(pj.Call):
         multiple audio files into a single file.
         Then this new file can be used to process the audio data, for example for transcription.
         """
-        
+
         inputfiles = [f"chat_files/segment_{i}.wav"  for i in range(min_segment, max_segment)]
         outputfile = f"chat_files/concat_{min_segment}_{max_segment}.wav"
 
@@ -173,18 +177,20 @@ class MyCall(pj.Call):
     def evaluate_energy(self, current_segment_index):
         if current_segment_index < 0:
             return True
-        
+
+        # Give some time to ensure the file is written and is available
         time.sleep(0.1)
         
         file_name = f"chat_files/segment_{current_segment_index}.wav"
         print("evaluate_energy ", file_name)
 
         if not os.path.exists(file_name):
-            raise FileNotFoundError(f"El archivo no se encontró: {file_name}")
+            raise FileNotFoundError(f"File not found: {file_name}")
 
         speech_results = self.vad.is_speech(file_name)
         self.vad.reset()
 
+        # count speech and silence frames
         speech_counter = 0
         silence_counter = 0
         for i, is_speech_frame in enumerate(speech_results):
@@ -197,6 +203,7 @@ class MyCall(pj.Call):
 
         print(f"{silence_counter}||{speech_counter}")
 
+        # Calculate the silence ratio to determine if the segment is silent
         return (silence_counter / (speech_counter + silence_counter)) > 0.95
 
 
@@ -214,9 +221,9 @@ class Account(pj.Account):
   def onRegState(self, prm):
     print("***OnRegState: " + prm.reason)
     if prm.code == 200:
-       print("Registro exitoso!")
+       print("Registration successful!")
     else:
-       print(f"Registro fallido: {prm.code} {prm.reason}")
+       print(f"Registration failed: {prm.code} {prm.reason}")
 
 
 async def pjsua2_test(telephone):
@@ -294,12 +301,13 @@ async def pjsua2_test(telephone):
   
   call.makeCall(dest_number, call_prm)
 
-  # Espera mientras la llamada está activa
+  # Loop while the call is active
   while True:
-      print("Esperando a que la llamada termine...")
+      print("Waiting the call to finish...")
       ci = call.getInfo()
       if ci.state == pj.PJSIP_INV_STATE_DISCONNECTED:
           break
+
       await call.poll()  # Check audio level and handle segments
       time.sleep(0.5)
 
