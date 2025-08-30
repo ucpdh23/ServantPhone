@@ -12,3 +12,8 @@ Business Use Cases:
 
 First of all, you need to build [pjsua2](https://docs.pjsip.org/en/latest/pjsua2/intro.html). This module provides a ready-to-use implementation of SIP in order to simplify and develop the VoIP component of this project. See the [build](https://docs.pjsip.org/en/latest/pjsua2/building.html) page to install this dependency in your system. 
 
+# How this module works
+
+This module initiates the phone call to the requested phone number (SIP-VoIP). Then, every 0.5 seconds a new audio segment is generated. This segment is analyzed in order to identify a speech from the user to determine how to process it.
+With the speech from the user, a GenIA Module is called to extract the text (STT), process it with an LLM Agent, and finally transcript the output into an audio.
+In audio is queued into the playback queue. This queue is processed and played to the user using the SIP-VoIP channel. 
