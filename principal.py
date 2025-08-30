@@ -22,6 +22,10 @@ AUTH_PASSWORD = os.getenv('AUTH_PASSWORD')
 
 
 class MyCall(pj.Call):
+    """
+    MyCall class handles the call media and recording.
+    """
+
     def __init__(self, acc, dest_uri, ep_instance: pj.Endpoint, agent):
         pj.Call.__init__(self, acc)
         self.dest_uri = dest_uri
@@ -58,6 +62,11 @@ class MyCall(pj.Call):
                 self.start_backloop()
 
     def _worker(self):
+        """
+        Audio playback worker thread. This thread will continuously check the queue to_reproduce
+        for audio files to play and manage the playback state.
+        """
+
         # --- PJLIB THREAD REGISTRATION ---
         self.ep.libRegisterThread("MyCallPlaybackWorker")
         print("Playback worker registered with PJLIB.")
@@ -70,7 +79,11 @@ class MyCall(pj.Call):
             self.playFile(item)
             self.to_reproduce.task_done()
 
+
     def start_backloop(self):
+        """
+        Start the audio playback worker thread.
+        """
         threading.Thread(target=self._worker, daemon=True).start()
 
     
@@ -89,6 +102,9 @@ class MyCall(pj.Call):
 
 
     def start_new_segment(self):
+        """
+        Start a new audio segment for recording. 
+        """
         if self.recorder:
             self.recorder = None  # Close previous
         file_name = f"chat_files/segment_{self.segment_index}.wav"
@@ -99,7 +115,11 @@ class MyCall(pj.Call):
         self.segment_index += 1
         self.last_voice_time = time.time()
 
+
     async def check_audio_level(self):
+        """
+        Check the audio level and manage silence detection.
+        """
         if not self.aud_med:
             return
 
@@ -136,6 +156,12 @@ class MyCall(pj.Call):
 
 
     def join_audio(self, min_segment, max_segment):
+        """
+        Auxiliary function to join audio segments. This method is used to concatenate
+        multiple audio files into a single file.
+        Then this new file can be used to process the audio data, for example for transcription.
+        """
+        
         inputfiles = [f"chat_files/segment_{i}.wav"  for i in range(min_segment, max_segment)]
         outputfile = f"chat_files/concat_{min_segment}_{max_segment}.wav"
 
@@ -175,6 +201,12 @@ class MyCall(pj.Call):
 
 
     async def poll(self):
+        """
+        Polling function to check audio levels and manage segments.
+        This function should be executed periodically to ensure
+        timely processing of audio data.
+        """
+
         await self.check_audio_level()
 
 # Subclass to extend the Account and get notifications etc.

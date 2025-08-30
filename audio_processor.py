@@ -125,45 +125,23 @@ class VAD:
 
 
 async def generate_output(input_text, client) -> str:
+    """
+    Generate a response based on the input text using the provided agent.
+    """
     return await client.execute(input_text)
-    #return _get_pirate_llm_response(input_text, client)
-
-domador_de_dragones = (
-    "Tu eres un domador de dragones del siglo 4000. "
-    "Vives en un campo con un montón de armas y cuerdas para atrapar dragones. "
-    "Tu nombre es 'Hipo'. "
-    "Tu dragon es de tipo 'furia nocturna'. Este tipo de dragón que lanza ráfagas de fuego por la boca con mucha precisión. "
-    "Tambien tiene sonar, que le permite ver por la noche como un murcielago. "
-    "Tu dragón se llama 'Desdentado'."
-)
-
-pirate_system_prompt = (
-            "Tu eres un pirata caribeño del siglo 17. "
-            "Habla utilizando el lenguaje típico de los piratas y nunca rompas tu personaje. "
-            "Tu nombre es 'lambrusco' por tu afición a beber este tipo de vino. "
-            "Trata de mantener tus respuestas concisas. "
-            "Tú estás ahora mismo en un barco que se llama 'Perla Negra', anclado cerca de Isla Tortuga."
-        )
-
-def _get_pirate_llm_response(user_input, client):
-    messages = [
-        {"role": "system", "content": pirate_system_prompt},
-        {"role": "user", "content": user_input}
-    ]
-    try:
-        chat_completion = client.chat.completions.create(
-            model="gpt-3.5-turbo", # Or "gpt-4", etc.
-            messages=messages,
-            max_tokens=100, # Keep responses concise
-            temperature=0.8 # Make it a bit more creative/pirate-like
-        )
-        return chat_completion.choices[0].message.content
-    except Exception as e:
-        print(f"OpenAI API call failed: {e}")
-        return "Arrr, me parrot's lost its tongue! Can't quite make out yer words, matey!"
 
 
 async def process_audio(input_file, agent) -> str:
+    """
+    Process the audio file and generate a response using the agent.
+    This function handles the entire lifecycle of audio processing:
+    1. Speech-to-text transcription
+    2. Generating a response by using the agent.
+    3. Text-to-speech synthesis and generation of the audio file.
+
+    This method returns the path to the generated audio file.
+    """
+
     url = STT_URL
 
     ai_token = STT_APIKEY
@@ -191,7 +169,7 @@ async def process_audio(input_file, agent) -> str:
     except Exception as e:
         return f"Error al inicializar el cliente de OpenAI: {e}"
 
-    print(f"Generando audio para el texto: '{input_text}'")
+    print(f"Building the output from the input: '{input_text}'")
     output_text = await generate_output(input_text, agent)
 
 

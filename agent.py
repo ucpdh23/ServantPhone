@@ -19,6 +19,11 @@ LLM_PROMPT = os.getenv('LLM_PROMPT')
 MCP_URL = os.getenv('MCP_URL')
 
 class MCPAgent:
+    """
+    Agent to process the user input (as a text from the audio).
+    This agent can use various tools and APIs to fulfill the user's request.
+    Finally, this agent generates a response (to then be sent back to the user as audio).
+    """
 
     def __init__(self):
         self.checkpointer = InMemorySaver()
