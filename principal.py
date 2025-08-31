@@ -26,16 +26,12 @@ class MyCall(pj.Call):
     MyCall class handles the call media and recording.
     """
 
-    def __init__(self, acc, dest_uri, ep_instance: pj.Endpoint, agent):
+    def __init__(self, acc, ep_instance: pj.Endpoint, agent):
         pj.Call.__init__(self, acc)
-        self.dest_uri = dest_uri
         self.ep = ep_instance # Store the Endpoint instance
         self.recorder = None
         self.aud_med = None
         self.segment_index = 0
-        self.last_voice_time = time.time()
-        self.silence_threshold = 500  # adjust based on experiments
-        self.silence_timeout = 0.5    # seconds of silence to split segments
         self.vad = VAD(energy_threshold=0.0002, zcr_threshold=0.04)
         self.pre_silence_detected = True
         self.last_segment_index = 0
@@ -113,8 +109,7 @@ class MyCall(pj.Call):
         self.aud_med.startTransmit(self.recorder)
         print(f"Started recording {file_name}")
         self.segment_index += 1
-        self.last_voice_time = time.time()
-
+    
 
     async def check_audio_level(self):
         """
@@ -123,17 +118,11 @@ class MyCall(pj.Call):
         if not self.aud_med:
             return
 
-        level = self.aud_med.getRxLevel()
-        #print(f"Audio level: {level}")
+        # Generates a new audio segment
+        self.start_new_segment()
 
-        if level > self.silence_threshold: # level is returning 0
-            self.last_voice_time = time.time()
-        else:
-            # Generates a new audio segment
-            self.start_new_segment()
-
-            # check the last (and previous) audio files
-            await self.check_incomming_audio(self.segment_index - 2)
+        # check the last (and previous) audio files
+        await self.check_incomming_audio(self.segment_index - 2)
                 
 
     async def check_incomming_audio(self, current_segment_index):
@@ -141,9 +130,13 @@ class MyCall(pj.Call):
         Check the incoming audio for silence detection.
         If silence is detected and the previous segment was speech,
         process the audio segment and generate a response.
+
+        There are two variables to handle the current status:
+        - pre_silence_detected: Indicates if the previous segment was silent
+        - last_segment_index: Keeps track of the last silent segment. This element is required to join audio segments correctly.
         """
         print("check_incoming_message...")
-        silence_detected = self.evaluate_energy(current_segment_index)
+        silence_detected = self.evaluate_energy(current_segment_index, current_segment_index - self.last_segment_index)
         print("silence detected", silence_detected)
 
         if silence_detected and not self.pre_silence_detected:
@@ -156,6 +149,7 @@ class MyCall(pj.Call):
         elif not silence_detected and self.pre_silence_detected:
             self.last_segment_index = current_segment_index
 
+        # Update the previous silence detection state
         self.pre_silence_detected = silence_detected
 
 
@@ -174,7 +168,7 @@ class MyCall(pj.Call):
         return outputfile
 
     
-    def evaluate_energy(self, current_segment_index):
+    def evaluate_energy(self, current_segment_index, distance):
         if current_segment_index < 0:
             return True
 
@@ -204,6 +198,7 @@ class MyCall(pj.Call):
         print(f"{silence_counter}||{speech_counter}")
 
         # Calculate the silence ratio to determine if the segment is silent
+        # Silence ratio is defined as the proportion of silence frames to total frames
         return (silence_counter / (speech_counter + silence_counter)) > 0.95
 
 
@@ -296,7 +291,7 @@ async def pjsua2_test(telephone):
   role = "Tú eres un asistente. Utiliza las tools si piensas que te pueden dar información util, si no utiliza tu conocimiento interno. Contesta siempre en español"
   await agent._ainitialize(role=role)
 
-  call = MyCall(acc, dest_number, ep, agent)
+  call = MyCall(acc, ep, agent)
   call_prm = pj.CallOpParam(True)
   
   call.makeCall(dest_number, call_prm)
